@@ -14,4 +14,7 @@ func TestCat(t *testing.T) {
 	if result != "test" {
 		t.Fatal("failed test: cat")
 	}
+	if err := Run("rm tmp.txt"); err != nil {
+		t.Fatal((err))
+	}
 }
