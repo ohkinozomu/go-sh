@@ -38,8 +38,8 @@ func RunR(command string) (string, error) {
 	return strings.TrimRight(string(out), "\n"), nil
 }
 
-// RunWait executes command, and waits for command to succeed.
-func RunWait(command string, timeOut time.Duration) error {
+// RunWait executes command, and waits for checkCommand to succeed.
+func RunWait(command, checkCommand string) error {
 	var stdBuffer bytes.Buffer
 	mw := io.MultiWriter(os.Stdout, &stdBuffer)
 
@@ -47,10 +47,19 @@ func RunWait(command string, timeOut time.Duration) error {
 	cmd.Stdout = mw
 	cmd.Stderr = mw
 
+	if err := cmd.Run(); err != nil {
+		return err
+	}
+
+	checkCmd := exec.Command("sh", "-c", checkCommand)
+	checkCmd.Stdout = mw
+	checkCmd.Stderr = mw
+
+	timeOut := time.Second * 30
 	start := time.Now()
 
 	for {
-		if err := cmd.Run(); err == nil {
+		if err := checkCmd.Run(); err == nil {
 			break
 		}
 		if time.Since(start) > timeOut {
